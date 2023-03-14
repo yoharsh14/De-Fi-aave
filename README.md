@@ -35,6 +35,6 @@ Process:
    ```async function approveErc20(erc20Address, spenderAddress, amountToSpend, account)```
     - With the help of function of IERC20 contract.
     - We can approve for the access of our wallet.
-# Depositing
-    ```await lendingPool.deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)```
+## Depositing
+   ```await lendingPool.deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)```
     - using above line we can deposit we in the leding pool.
