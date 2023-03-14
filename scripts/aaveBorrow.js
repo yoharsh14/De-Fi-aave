@@ -30,7 +30,44 @@ async function main() {
     console.log("Depositing...");
     // deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)
     await lendingPool.deposit(wethTokenAddress, AMOUNT, deployer, 0);
-    console.log("------------DEPOSITED----------------")
+    console.log("------------DEPOSITED----------------");
+
+    /**BORROW TIME!!!
+     * - how much we can borrow
+     * - how much we have in collatoral
+     * - how much we have borrowed
+     * --------------------------------------
+     * - we you have 1ETH collatoral and borrowed 1.8ETH then you will get liquidated
+     * -Liquidation Threshold: The liquidation threshold is the percentrage at which a person is defined as
+     *  undercollateralised.For example, a Liquidation threshold of 80% means that if the value rises above 80%
+     *  of the collateral, the position is undercollateralised and could be liquidated.
+     * - if you have borrowed money more than you put up then people can take your collateral
+     *   because they are paying for your loans.
+     */
+    let { availableBorrowsETH, totalDebtEth } = await getBorrowUserData(lendingPool, deployer);
+    //Now we have info about how much can buy and how much debt we have
+
+    /**
+     * BORROW DAI
+     * - before borrowing the DAI we need the conversion rate of ETH-DAI
+     * - for this we are going to use chainlink priceFeeds
+     */
+    console.log("-------------------------------------------")
+    const daiPrice = await getDaiPrice();
+    const amountDaiToBorrow = availableBorrowsETH.toString() * 0.95 * (1 / daiPrice.toNumber());
+    console.log(`You can borrow ${amountDaiToBorrow} DAI`);
+    const amountDaiToBorrowWei = ethers.utils.parseEther(amountDaiToBorrow.toString());
+
+    /** Now we know the exhange price of DAI/ETH
+     * - we can borrow the DAI
+     */
+    //BORROWING!!!!!!!
+    console.log("---------------------------------------------")
+    const daiTokenAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+    await borrwoDai(daiTokenAddress, lendingPool, amountDaiToBorrowWei, deployer);
+    console.log("---------------------------------------------")
+    console.log("Your data after Borrowing")
+    await getBorrowUserData(lendingPool, deployer);
 }
 async function getLendingPool(account) {
     const lendingPoolAddressesProvider = await ethers.getContractAt(
@@ -56,6 +93,32 @@ async function approveErc20(erc20Address, spenderAddress, amountToSpend, account
     console.log("Approved!");
 }
 
+async function getBorrowUserData(lendingPool, account) {
+    const { totalCollateralETH, totalDebtEth, availableBorrowsETH } =
+        await lendingPool.getUserAccountData(account);
+
+    console.log(`You have ${totalCollateralETH} worth of ETH deposited.`);
+    console.log(`You have ${totalDebtEth} worth of ETH borrowed`);
+    console.log(`You can borrow ${availableBorrowsETH} worth of ETH.`);
+    return { availableBorrowsETH, totalDebtEth };
+}
+
+async function getDaiPrice() {
+    // we didn't connected it with the deployer because we are just reading not writting
+    const daiEthPriceFeed = await ethers.getContractAt(
+        "AggregatorV3Interface",
+        "0x773616E4d11A78F511299002da57A0a94577F1f4"
+    );
+    const price = (await daiEthPriceFeed.latestRoundData())[1];
+    console.log(`The DAI/ETH price is ${price.toString()}`);
+    return price;
+}
+
+async function borrwoDai(daiAddress, lendingPool, amountDaiToBorrowWei, account) {
+    const borrowTx = await lendingPool.borrow(daiAddress, amountDaiToBorrowWei, 1, 0, account);
+    await borrowTx.wait(1);
+    console.log("You've borrowed!!!");
+}
 main()
     .then(() => process.exit(0))
     .catch((error) => {
