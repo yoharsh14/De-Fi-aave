@@ -27,7 +27,10 @@ async function main() {
     /** Now that we have approved the aave contract the access of our wallet.
      * We can now deposit our Weth token from our wallet to the pool.
      */
-    console.log("...Depositing!!");
+    console.log("Depositing...");
+    // deposit(address asset,uint256 amount,address onBehalfOf,uint16 referralCode)
+    await lendingPool.deposit(wethTokenAddress, AMOUNT, deployer, 0);
+    console.log("------------DEPOSITED----------------")
 }
 async function getLendingPool(account) {
     const lendingPoolAddressesProvider = await ethers.getContractAt(
