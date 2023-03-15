@@ -44,7 +44,7 @@ async function main() {
      * - if you have borrowed money more than you put up then people can take your collateral
      *   because they are paying for your loans.
      */
-    let { availableBorrowsETH, totalDebtEth } = await getBorrowUserData(lendingPool, deployer);
+    let availableBorrowsETH= await getBorrowUserData(lendingPool, deployer);
     //Now we have info about how much can buy and how much debt we have
 
     /**
@@ -52,7 +52,7 @@ async function main() {
      * - before borrowing the DAI we need the conversion rate of ETH-DAI
      * - for this we are going to use chainlink priceFeeds
      */
-    console.log("-------------------------------------------")
+    console.log("-------------------------------------------");
     const daiPrice = await getDaiPrice();
     const amountDaiToBorrow = availableBorrowsETH.toString() * 0.95 * (1 / daiPrice.toNumber());
     console.log(`You can borrow ${amountDaiToBorrow} DAI`);
@@ -62,12 +62,20 @@ async function main() {
      * - we can borrow the DAI
      */
     //BORROWING!!!!!!!
-    console.log("---------------------------------------------")
+    console.log("---------------------------------------------");
     const daiTokenAddress = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
     await borrwoDai(daiTokenAddress, lendingPool, amountDaiToBorrowWei, deployer);
-    console.log("---------------------------------------------")
-    console.log("Your data after Borrowing")
+    console.log("-----------------Your data after Borrowing----------------------");
     await getBorrowUserData(lendingPool, deployer);
+
+    //REPAY
+    /** There is a tiny amount of ETH still as borrowed because we still own the interest when 
+     * we borrowed the DAI, aave owns use still a small amount of interest on borrowed dai */
+    console.log("-----------------------REPAYING-----------------------------")
+    await repay(amountDaiToBorrowWei, daiTokenAddress, lendingPool, deployer);
+    await getBorrowUserData(lendingPool, deployer);
+
+    // Repaying remainning amount of ETH using uinswap back to aave
 }
 async function getLendingPool(account) {
     const lendingPoolAddressesProvider = await ethers.getContractAt(
@@ -94,13 +102,12 @@ async function approveErc20(erc20Address, spenderAddress, amountToSpend, account
 }
 
 async function getBorrowUserData(lendingPool, account) {
-    const { totalCollateralETH, totalDebtEth, availableBorrowsETH } =
+    const { totalCollateralETH, totalDebtETH, availableBorrowsETH } =
         await lendingPool.getUserAccountData(account);
-
-    console.log(`You have ${totalCollateralETH} worth of ETH deposited.`);
-    console.log(`You have ${totalDebtEth} worth of ETH borrowed`);
-    console.log(`You can borrow ${availableBorrowsETH} worth of ETH.`);
-    return { availableBorrowsETH, totalDebtEth };
+    console.log(`You have ${totalCollateralETH} worth of WETH deposited.`);
+    console.log(`You have ${totalDebtETH} worth of WETH borrowed.`);
+    console.log(`You can borrow ${availableBorrowsETH} worth of WETH.`);
+    return  availableBorrowsETH;
 }
 
 async function getDaiPrice() {
@@ -119,6 +126,13 @@ async function borrwoDai(daiAddress, lendingPool, amountDaiToBorrowWei, account)
     await borrowTx.wait(1);
     console.log("You've borrowed!!!");
 }
+
+async function repay(amount, daiAddress, lendingPool, account) {
+    await approveErc20(daiAddress, lendingPool.address, amount, account);
+    const repayTx = await lendingPool.repay(daiAddress, amount, 1, account);
+    await repayTx.wait(1);
+}
+
 main()
     .then(() => process.exit(0))
     .catch((error) => {

@@ -1,6 +1,6 @@
 1. Deposit collateral: ETH/WETH ✅
 2. Borrow another asset: DAI ✅
-3. Repay the DAI
+3. Repay the DAI ✅
 
 // FORKING
 // TradeOffs
@@ -60,3 +60,9 @@ Process:
 ## BorrwoDai
 - Now that we know the exchange price of DAI/EHT
 - we can borrow the DAI 
+
+
+# Explanining how all the transactions work
+ - when we deposit our collatoral we actually get back an `A`token or an interset paring token
+ - It tracks how much collatoral or in our case how much WETH token we have deposited in the aave protocol.
+ - When we want to withdraw our WETH token we burn these `A`.
