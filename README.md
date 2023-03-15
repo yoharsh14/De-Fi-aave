@@ -66,3 +66,11 @@ Process:
  - when we deposit our collatoral we actually get back an `A`token or an interset paring token
  - It tracks how much collatoral or in our case how much WETH token we have deposited in the aave protocol.
  - When we want to withdraw our WETH token we burn these `A`.
+
+ 1. First I have deposited WETH in my wallet.
+ 2. In order to deposit I have generated address for lending pool
+ 3. Deposited WETH token into lending pool
+ 4. Then borrowed DAI with my deposited WETH as a collatoral.
+ 5. After repayment of the DAI back to the aave/lending pool there is still some DAI left as borrowed
+ 6. That lefted DAI is the intereset on the borrowed DAI.
+ -------------------- COMPLETE WHOLE PROCESS ------------------------- 
