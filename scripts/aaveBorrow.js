@@ -44,7 +44,7 @@ async function main() {
      * - if you have borrowed money more than you put up then people can take your collateral
      *   because they are paying for your loans.
      */
-    let availableBorrowsETH= await getBorrowUserData(lendingPool, deployer);
+    let {availableBorrowsETH}= await getBorrowUserData(lendingPool, deployer);
     //Now we have info about how much can buy and how much debt we have
 
     /**
@@ -75,6 +75,17 @@ async function main() {
     await repay(amountDaiToBorrowWei, daiTokenAddress, lendingPool, deployer);
     await getBorrowUserData(lendingPool, deployer);
 
+    console.log("-----------------------REPAYING INTEREST----------------------")
+    const {totalDebtETH} = await getBorrowUserData(lendingPool,deployer);
+
+    console.log("-------------------------------------------");
+    // const totalDebtDai = totalDebtETH.toString() * (1 / daiPrice.toNumber());
+    console.log(`You can borrow ${totalDebtETH} DAI`);
+    const totalDebtDaiWei = ethers.utils.parseEther(totalDebtETH.toString());
+
+    await repay(totalDebtDaiWei,daiTokenAddress,lendingPool,deployer);
+    console.log("--------------------------ALL THE AMOUNT REPAYED---------------------")
+    await getBorrowUserData(lendingPool,deployer);
     // Repaying remainning amount of ETH using uinswap back to aave
 }
 async function getLendingPool(account) {
@@ -95,7 +106,7 @@ async function getLendingPool(account) {
 }
 
 async function approveErc20(erc20Address, spenderAddress, amountToSpend, account) {
-    const erc20Token = await ethers.getContractAt("IERC20", erc20Address);
+    const erc20Token = await ethers.getContractAt("IERC20", erc20Address,account);
     const tx = await erc20Token.approve(spenderAddress, amountToSpend);
     await tx.wait(1);
     console.log("Approved!");
@@ -107,7 +118,7 @@ async function getBorrowUserData(lendingPool, account) {
     console.log(`You have ${totalCollateralETH} worth of WETH deposited.`);
     console.log(`You have ${totalDebtETH} worth of WETH borrowed.`);
     console.log(`You can borrow ${availableBorrowsETH} worth of WETH.`);
-    return  availableBorrowsETH;
+    return  {totalDebtETH, availableBorrowsETH};
 }
 
 async function getDaiPrice() {

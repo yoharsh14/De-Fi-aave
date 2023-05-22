@@ -58,17 +58,17 @@ Process:
  - for this we are going to use chainlink priceFeeds.
 
 ## BorrwoDai
-- Now that we know the exchange price of DAI/EHT
+- Now that we know the exchange price of DAI/ETH
 - we can borrow the DAI 
 
 
 # Explanining how all the transactions work
- - when we deposit our collatoral we actually get back an `A`token or an interset paring token
+ - when we deposit our collatoral we actually get back an `A` token or an interset paring token
  - It tracks how much collatoral or in our case how much WETH token we have deposited in the aave protocol.
- - When we want to withdraw our WETH token we burn these `A`.
+ - When we want to withdraw our WETH token we burn these `A` tokens.
 
  1. First I have deposited WETH in my wallet.
- 2. In order to deposit I have generated address for lending pool
+ 2. In order to deposit in aave, I have fetched the address of lending pool
  3. Deposited WETH token into lending pool
  4. Then borrowed DAI with my deposited WETH as a collatoral.
  5. After repayment of the DAI back to the aave/lending pool there is still some DAI left as borrowed
